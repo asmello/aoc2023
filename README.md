@@ -20,23 +20,23 @@ I'm developing this as a library, with each day implemented as a module.
 
 ```
 aoc2023
-├──  src
-│  ├──  lib.rs
-│  ├──  day1.rs
-│  ├──  day2.rs
-│  └──  day2
-│     ├──  chumsky.rs
-│     └──  manual.rs
-└──  tests
-   ├──  common
-   │  └──  mod.rs
-   ├──  day1.rs
-   ├──  day2.rs
-   └──  resources
-      ├──  day1
-      │  └──  input.txt
-      └──  day2
-         └──  input.txt
+├── src
+│  ├── lib.rs
+│  ├── day1.rs
+│  ├── day2.rs
+│  └── day2
+│     ├── chumsky.rs
+│     └── manual.rs
+└── tests
+   ├── common
+   │  └── mod.rs
+   ├── day1.rs
+   ├── day2.rs
+   └── resources
+      ├── day1
+      │  └── input.txt
+      └── day2
+         └── input.txt
 ```
 
 In general each day module will export two functions, `part1()` and `part2()`, which implement the solutions to each part of the day's challenge. For now, I'm planning to have each take `impl Read` as the main argument representing the full input. Although I expect all problems will have a reasonably small input that can comfortably fit in a String, this generic interface is a good way to practice building a more realistic API. Note that some problems involve additional parameters that may also be passed to these functions.
