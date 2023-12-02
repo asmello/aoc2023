@@ -32,6 +32,20 @@ pub fn part1(input: impl Read, bag: &ColorSet) -> eyre::Result<usize> {
     Ok(sum)
 }
 
+pub fn part2(input: impl Read) -> eyre::Result<usize> {
+    let buf_reader = BufReader::new(input);
+    let mut sum = 0;
+    for (num, line) in buf_reader.lines().enumerate() {
+        let line = line?;
+        let game: Game = line
+            .parse()
+            .wrap_err_with(|| format!("failed to parse game at line {num}"))?;
+        let cover = game.cover();
+        sum += cover.power();
+    }
+    Ok(sum)
+}
+
 impl ColorSet {
     pub fn new(red: usize, green: usize, blue: usize) -> Self {
         Self { red, blue, green }
@@ -40,17 +54,26 @@ impl ColorSet {
     fn is_empty(&self) -> bool {
         self.red == 0 && self.green == 0 && self.blue == 0
     }
+
+    fn power(&self) -> usize {
+        self.red * self.green * self.blue
+    }
 }
 
 impl Game {
-    fn is_possible(&self, bag: &ColorSet) -> bool {
-        let mut max = ColorSet::default();
+    fn cover(&self) -> ColorSet {
+        let mut cover = ColorSet::default();
         for draw in &self.draws {
-            max.red = max.red.max(draw.red);
-            max.green = max.green.max(draw.green);
-            max.blue = max.blue.max(draw.blue);
+            cover.red = cover.red.max(draw.red);
+            cover.green = cover.green.max(draw.green);
+            cover.blue = cover.blue.max(draw.blue);
         }
-        max.red <= bag.red && max.green <= bag.green && max.blue <= bag.blue
+        cover
+    }
+
+    fn is_possible(&self, bag: &ColorSet) -> bool {
+        let cover = self.cover();
+        cover.red <= bag.red && cover.green <= bag.green && cover.blue <= bag.blue
     }
 }
 
@@ -155,4 +178,29 @@ fn parse_color<'a>(
         color,
         is_terminal,
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use indoc::indoc;
+
+    use crate::day2::Game;
+    #[test]
+    fn power_of_cover() {
+        const INPUT: &str = indoc! { r#"
+    		Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+    		Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+    		Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+    		Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+    		Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+    	"# };
+
+        let mut powers = Vec::new();
+        for line in INPUT.lines() {
+            let game: Game = line.parse().unwrap();
+            let cover = game.cover();
+            powers.push(cover.power());
+        }
+        assert_eq!(powers, [48, 12, 1560, 630, 36]);
+    }
 }
