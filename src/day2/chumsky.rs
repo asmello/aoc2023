@@ -46,19 +46,17 @@ fn parse_game(s: &str) -> eyre::Result<Game> {
 fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
     let head = just("Game").padded();
 
-    let id = text::int(10)
-        .map(|s: String| s.parse::<usize>().unwrap())
-        .then_ignore(just(':'));
+    let integer = text::int(10).from_str().unwrapped().padded();
 
-    let color = just("red")
-        .to(Color::Red)
-        .or(just("green").to(Color::Green))
-        .or(just("blue").to(Color::Blue));
+    let id = integer.then_ignore(just(':')).padded();
 
-    let color_count = text::int(10)
-        .map(|s: String| s.parse::<usize>().unwrap())
-        .padded()
-        .then(color);
+    let color = choice((
+        just("red").to(Color::Red),
+        just("green").to(Color::Green),
+        just("blue").to(Color::Blue),
+    ));
+
+    let color_count = integer.then(color);
 
     let color_set = color_count.separated_by(just(',')).map(|color_counts| {
         let mut set = ColorSet::default();
@@ -76,6 +74,7 @@ fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
 
     head.ignore_then(id)
         .then(color_set)
+        .then_ignore(end())
         .map(|(id, draws)| Game { id, draws })
 }
 
