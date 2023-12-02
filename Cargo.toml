@@ -8,6 +8,7 @@ license = "MIT"
 
 [dependencies]
 eyre = "0.6.9"
+chumsky = "0.9.3"
 
 [dev-dependencies]
 indoc = "2.0.4"

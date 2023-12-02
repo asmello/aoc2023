@@ -1,6 +1,5 @@
 mod common;
 
-use aoc2023::day2::{self, ColorSet};
 use indoc::indoc;
 
 const SAMPLE: &str = indoc! { r#"
@@ -11,30 +10,76 @@ const SAMPLE: &str = indoc! { r#"
 		Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 	"# };
 
-#[test]
-fn part1_sample() {
-    let bag = ColorSet::new(12, 13, 14);
-    let result = day2::part1(SAMPLE.as_bytes(), &bag).unwrap();
-    assert_eq!(result, 8);
+mod manual {
+    use super::SAMPLE;
+    use crate::common;
+    use aoc2023::day2::{
+        manual::{part1, part2},
+        ColorSet,
+    };
+
+    #[test]
+    fn part1_sample() {
+        let bag = ColorSet::new(12, 13, 14);
+        let result = part1(SAMPLE.as_bytes(), &bag).unwrap();
+        assert_eq!(result, 8);
+    }
+
+    #[test]
+    fn part1_input() {
+        let input = common::read("day2/input.txt").unwrap();
+        let bag = ColorSet::new(12, 13, 14);
+        let result = part1(input, &bag).unwrap();
+        assert_eq!(result, 2076);
+    }
+
+    #[test]
+    fn part2_sample() {
+        let result = part2(SAMPLE.as_bytes()).unwrap();
+        assert_eq!(result, 2286);
+    }
+
+    #[test]
+    fn part2_input() {
+        let input = common::read("day2/input.txt").unwrap();
+        let result = part2(input).unwrap();
+        assert_eq!(result, 70950);
+    }
 }
 
-#[test]
-fn part1_input() {
-    let input = common::read("day2/input.txt").unwrap();
-    let bag = ColorSet::new(12, 13, 14);
-    let result = day2::part1(input, &bag).unwrap();
-    assert_eq!(result, 2076);
-}
+mod chumsky {
+    use super::SAMPLE;
+    use crate::common;
+    use aoc2023::day2::{
+        chumsky::{part1, part2},
+        ColorSet,
+    };
 
-#[test]
-fn part2_sample() {
-    let result = day2::part2(SAMPLE.as_bytes()).unwrap();
-    assert_eq!(result, 2286);
-}
+    #[test]
+    fn part1_sample() {
+        let bag = ColorSet::new(12, 13, 14);
+        let result = part1(SAMPLE.as_bytes(), &bag).unwrap();
+        assert_eq!(result, 8);
+    }
 
-#[test]
-fn part2_input() {
-    let input = common::read("day2/input.txt").unwrap();
-    let result = day2::part2(input).unwrap();
-    assert_eq!(result, 70950);
+    #[test]
+    fn part1_input() {
+        let input = common::read("day2/input.txt").unwrap();
+        let bag = ColorSet::new(12, 13, 14);
+        let result = part1(input, &bag).unwrap();
+        assert_eq!(result, 2076);
+    }
+
+    #[test]
+    fn part2_sample() {
+        let result = part2(SAMPLE.as_bytes()).unwrap();
+        assert_eq!(result, 2286);
+    }
+
+    #[test]
+    fn part2_input() {
+        let input = common::read("day2/input.txt").unwrap();
+        let result = part2(input).unwrap();
+        assert_eq!(result, 70950);
+    }
 }
