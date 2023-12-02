@@ -70,10 +70,10 @@ fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
         set
     });
 
-    let color_set = color_set.separated_by(just(';'));
+    let color_sets = color_set.separated_by(just(';'));
 
     head.ignore_then(id)
-        .then(color_set)
+        .then(color_sets)
         .then_ignore(end())
         .map(|(id, draws)| Game { id, draws })
 }
