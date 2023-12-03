@@ -1,24 +1,38 @@
 use std::{
-    fmt::Display,
+    collections::HashSet,
     io::{BufRead, BufReader, Read},
 };
 
+use eyre::Context;
+
 pub fn part1(input: impl Read) -> eyre::Result<usize> {
+    let grid = build_grid(input)?;
+    let sum = grid
+        .numbers
+        .iter()
+        .filter_map(|num| grid.has_adjacent_symbol(&num.span).then_some(num.value))
+        .sum();
+    Ok(sum)
+}
+
+pub fn part2(input: impl Read) -> eyre::Result<usize> {
+    let grid = build_grid(input)?;
+    let sum = grid
+        .iter()
+        .filter_map(|(row, col, _)| grid.gear_ratio(row, col))
+        .sum();
+    Ok(sum)
+}
+
+fn build_grid(input: impl Read) -> eyre::Result<Grid> {
     let buf_reader = BufReader::new(input);
     let mut grid = Grid::default();
-    let mut numbers = Vec::new();
     for (row, line) in buf_reader.lines().enumerate() {
-        let line = line?;
+        let line = line.wrap_err_with(|| format!("failed to read line {row}"))?;
         if line.is_empty() {
             continue;
         }
-        // Extract symbols
-        grid.symbols.push(
-            line.chars()
-                .map(|ch| !ch.is_ascii_digit() && ch != '.')
-                .collect(),
-        );
-        // Extract numbers
+        let mut cells = Vec::with_capacity(line.len());
         let mut maybe_start = None;
         for (col, ch) in line.chars().enumerate() {
             if let Some(start) = maybe_start {
@@ -26,20 +40,35 @@ pub fn part1(input: impl Read) -> eyre::Result<usize> {
                     let end = col;
                     let slice = &line[start..end];
                     let value: usize = slice.parse().unwrap();
-                    numbers.push(Number {
+                    cells.extend(
+                        std::iter::repeat(GridCell::Number(grid.numbers.len())).take(end - start),
+                    );
+                    grid.numbers.push(Number {
                         value,
                         span: Span { row, start, end },
                     });
                     maybe_start = None;
+                    if ch == '.' {
+                        cells.push(GridCell::Empty);
+                    } else {
+                        cells.push(GridCell::Symbol(ch));
+                    }
                 }
             } else if ch.is_ascii_digit() {
                 maybe_start = Some(col);
+            } else if ch != '.' {
+                cells.push(GridCell::Symbol(ch));
+            } else {
+                cells.push(GridCell::Empty);
             }
         }
         if let Some(start) = maybe_start {
             let slice = &line[start..];
             let value: usize = slice.parse().unwrap();
-            numbers.push(Number {
+            cells.extend(
+                std::iter::repeat(GridCell::Number(grid.numbers.len())).take(line.len() - start),
+            );
+            grid.numbers.push(Number {
                 value,
                 span: Span {
                     row,
@@ -48,71 +77,21 @@ pub fn part1(input: impl Read) -> eyre::Result<usize> {
                 },
             });
         }
+        grid.cells.push(cells);
     }
-    let sum = numbers
-        .into_iter()
-        .filter_map(|num| grid.has_adjacent_symbol(&num.span).then_some(num.value))
-        .sum();
-    Ok(sum)
+    Ok(grid)
 }
 
-#[derive(Default, Debug)]
-struct Grid {
-    symbols: Vec<Vec<bool>>,
+#[derive(Debug, Clone)]
+enum GridCell {
+    Number(usize),
+    Symbol(char),
+    Empty,
 }
 
-impl Grid {
-    fn width(&self) -> usize {
-        if !self.symbols.is_empty() {
-            self.symbols[0].len()
-        } else {
-            0
-        }
-    }
-    fn height(&self) -> usize {
-        self.symbols.len()
-    }
-    fn has_adjacent_symbol(&self, span: &Span) -> bool {
-        let (start, end) = (
-            span.start.saturating_sub(1),
-            (span.end + 1).min(self.width()),
-        );
-        if self.symbols[span.row][start] || self.symbols[span.row][end - 1] {
-            return true;
-        }
-        if span.row > 0 {
-            let row = span.row - 1;
-            for col in start..end {
-                if self.symbols[row][col] {
-                    return true;
-                }
-            }
-        }
-        if span.row + 1 < self.height() {
-            let row = span.row + 1;
-            for col in start..end {
-                if self.symbols[row][col] {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-}
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in &self.symbols {
-            for &cell in row {
-                if cell {
-                    f.write_str("#")?;
-                } else {
-                    f.write_str(".")?;
-                }
-            }
-            f.write_str("\n")?;
-        }
-        Ok(())
+impl GridCell {
+    fn is_symbol(&self) -> bool {
+        matches!(self, Self::Symbol(_))
     }
 }
 
@@ -127,4 +106,97 @@ struct Span {
     row: usize,
     start: usize,
     end: usize,
+}
+
+#[derive(Default, Debug)]
+struct Grid {
+    cells: Vec<Vec<GridCell>>,
+    numbers: Vec<Number>,
+}
+
+impl Grid {
+    fn width(&self) -> usize {
+        if !self.cells.is_empty() {
+            self.cells[0].len()
+        } else {
+            0
+        }
+    }
+    fn height(&self) -> usize {
+        self.cells.len()
+    }
+    fn has_adjacent_symbol(&self, span: &Span) -> bool {
+        let (start, end) = (
+            span.start.saturating_sub(1),
+            (span.end + 1).min(self.width()),
+        );
+        let check_row = |row: usize| {
+            for col in start..end {
+                if self.cells[row][col].is_symbol() {
+                    return true;
+                }
+            }
+            false
+        };
+        if self.cells[span.row][start].is_symbol() || self.cells[span.row][end - 1].is_symbol() {
+            return true;
+        }
+        if span.row > 0 && check_row(span.row - 1) {
+            return true;
+        }
+        if span.row + 1 < self.height() && check_row(span.row + 1) {
+            return true;
+        }
+        false
+    }
+    fn neighbours(&self, row: usize, col: usize) -> impl Iterator<Item = &GridCell> {
+        const DELTAS: [(i32, i32); 8] = [
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ];
+        DELTAS.iter().filter_map(move |(d_row, d_col)| {
+            let (new_row, new_col) = (row as i32 + d_row, col as i32 + d_col);
+            if new_row < 0
+                || new_col < 0
+                || new_row as usize > self.height()
+                || new_col as usize > self.width()
+            {
+                None
+            } else {
+                Some(&self.cells[new_row as usize][new_col as usize])
+            }
+        })
+    }
+    fn gear_ratio(&self, row: usize, col: usize) -> Option<usize> {
+        if !matches!(self.cells[row][col], GridCell::Symbol('*')) {
+            return None;
+        }
+        let neighbour_numbers: HashSet<_> = self
+            .neighbours(row, col)
+            .filter_map(|cell| match cell {
+                GridCell::Number(index) => Some(*index),
+                _ => None,
+            })
+            .collect();
+        (neighbour_numbers.len() == 2).then(|| {
+            neighbour_numbers
+                .into_iter()
+                .map(|idx| self.numbers[idx].value)
+                .product()
+        })
+    }
+    fn iter(&self) -> impl Iterator<Item = (usize, usize, &GridCell)> {
+        self.cells.iter().enumerate().flat_map(|(row, row_cells)| {
+            row_cells
+                .iter()
+                .enumerate()
+                .map(move |(col, cell)| (row, col, cell))
+        })
+    }
 }

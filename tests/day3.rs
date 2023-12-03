@@ -28,3 +28,16 @@ fn part1_input() {
     let result = day3::part1(input).unwrap();
     assert_eq!(result, 540025);
 }
+
+#[test]
+fn part2_sample() {
+    let result = day3::part2(SAMPLE.as_bytes()).unwrap();
+    assert_eq!(result, 467835);
+}
+
+#[test]
+fn part2_input() {
+    let input = common::read("day3/input.txt").unwrap();
+    let result = day3::part2(input).unwrap();
+    assert_eq!(result, 84584891);
+}

@@ -17,7 +17,7 @@ fn part1_sample() {
 }
 
 #[test]
-fn part1_challenge() {
+fn part1_input() {
     let input = common::read("day1/input.txt").unwrap();
     let result = day1::part1(input).unwrap();
     assert_eq!(result, 54632);
@@ -48,7 +48,7 @@ fn part2_special() {
 }
 
 #[test]
-fn part2_challenge() {
+fn part2_input() {
     let input = common::read("day1/input.txt").unwrap();
     let result = day1::part2(input).unwrap();
     assert_eq!(result, 54019);
