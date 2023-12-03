@@ -1,4 +1,6 @@
 # aoc2023
+[![Nix CI](https://github.com/asmello/aoc2023/actions/workflows/ci.yml/badge.svg)](https://github.com/asmello/aoc2023/actions/workflows/ci.yml)
+
 My solutions to Advent of Code 2023
 
 ## Goals
