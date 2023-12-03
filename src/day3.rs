@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    io::{BufRead, BufReader, Read},
-};
+use std::io::{BufRead, BufReader, Read};
 
 use eyre::Context;
 
@@ -35,39 +32,36 @@ fn build_grid(input: impl Read) -> eyre::Result<Grid> {
         let mut cells = Vec::with_capacity(line.len());
         let mut maybe_start = None;
         for (col, ch) in line.chars().enumerate() {
-            if let Some(start) = maybe_start {
-                if !ch.is_ascii_digit() {
-                    let end = col;
-                    let slice = &line[start..end];
-                    let value: usize = slice.parse().unwrap();
-                    cells.extend(
-                        std::iter::repeat(GridCell::Number(grid.numbers.len())).take(end - start),
-                    );
-                    grid.numbers.push(Number {
-                        value,
-                        span: Span { row, start, end },
-                    });
-                    maybe_start = None;
-                    if ch == '.' {
-                        cells.push(GridCell::Empty);
-                    } else {
-                        cells.push(GridCell::Symbol(ch));
-                    }
-                }
-            } else if ch.is_ascii_digit() {
-                maybe_start = Some(col);
+            if ch.is_ascii_digit() {
+                // Number cells have the index where the number will be in the numbers vector
+                cells.push(GridCell::Number(grid.numbers.len()));
             } else if ch != '.' {
                 cells.push(GridCell::Symbol(ch));
             } else {
                 cells.push(GridCell::Empty);
             }
+            if let Some(start) = maybe_start {
+                if !ch.is_ascii_digit() {
+                    let end = col;
+                    let slice = &line[start..end];
+                    let value: usize = slice
+                        .parse()
+                        .wrap_err("could not parse sequence as usize at line {row} col {col}")?;
+                    grid.numbers.push(Number {
+                        value,
+                        span: Span { row, start, end },
+                    });
+                    maybe_start = None;
+                }
+            } else if ch.is_ascii_digit() {
+                maybe_start = Some(col);
+            }
         }
         if let Some(start) = maybe_start {
             let slice = &line[start..];
-            let value: usize = slice.parse().unwrap();
-            cells.extend(
-                std::iter::repeat(GridCell::Number(grid.numbers.len())).take(line.len() - start),
-            );
+            let value: usize = slice
+                .parse()
+                .wrap_err("could not parse sequence as usize at line {row} col {col}")?;
             grid.numbers.push(Number {
                 value,
                 span: Span {
@@ -162,28 +156,25 @@ impl Grid {
         ];
         DELTAS.iter().filter_map(move |(d_row, d_col)| {
             let (new_row, new_col) = (row as i32 + d_row, col as i32 + d_col);
-            if new_row < 0
-                || new_col < 0
-                || new_row as usize > self.height()
-                || new_col as usize > self.width()
-            {
-                None
-            } else {
-                Some(&self.cells[new_row as usize][new_col as usize])
-            }
+            (new_row >= 0
+                && new_col >= 0
+                && (new_row as usize) < self.height()
+                && (new_col as usize) < self.width())
+            .then_some(&self.cells[new_row as usize][new_col as usize])
         })
     }
     fn gear_ratio(&self, row: usize, col: usize) -> Option<usize> {
         if !matches!(self.cells[row][col], GridCell::Symbol('*')) {
             return None;
         }
-        let neighbour_numbers: HashSet<_> = self
+        let mut neighbour_numbers: Vec<_> = self
             .neighbours(row, col)
             .filter_map(|cell| match cell {
                 GridCell::Number(index) => Some(*index),
                 _ => None,
             })
             .collect();
+        neighbour_numbers.dedup(); // Numbers may occupy multiple cells
         (neighbour_numbers.len() == 2).then(|| {
             neighbour_numbers
                 .into_iter()
