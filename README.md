@@ -8,7 +8,7 @@ My solutions to Advent of Code 2023
 - Improve how I approach problem-solving.
 - Have some fun.
 
-## Anti-goals
+## Non-goals
 
 - Rank high in the scoreboards. I'm not doing this competitively.
 - Write the fastest, cleverest, most idiomatic or most concise code.
