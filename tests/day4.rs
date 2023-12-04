@@ -11,6 +11,7 @@ const SAMPLE: &str = indoc! { r#"
 	Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 	Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 1
 "# };
+const INPUT_PATH: &str = "day4/input.txt";
 
 #[test]
 fn part1_sample() {
@@ -20,7 +21,20 @@ fn part1_sample() {
 
 #[test]
 fn part1_input() {
-    let input = common::read("day4/input.txt").unwrap();
+    let input = common::read(INPUT_PATH).unwrap();
     let result = day4::part1(input).unwrap();
     assert_eq!(result, 25004);
+}
+
+#[test]
+fn part2_sample() {
+    let result = day4::part2(SAMPLE.as_bytes()).unwrap();
+    assert_eq!(result, 30);
+}
+
+#[test]
+fn part2_input() {
+    let input = common::read(INPUT_PATH).unwrap();
+    let result = day4::part2(input).unwrap();
+    assert_eq!(result, 14427616);
 }
