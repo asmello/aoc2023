@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::{io::Read, path::Path};
 
 pub fn read(path: &str) -> std::io::Result<impl Read> {
