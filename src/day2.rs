@@ -2,7 +2,7 @@ pub mod chumsky;
 pub mod manual;
 
 // default implementation
-pub use chumsky::{part1, part2};
+pub use self::chumsky::{part1, part2};
 
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Game {
