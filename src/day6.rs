@@ -6,15 +6,11 @@ use chumsky::{
 };
 use eyre::eyre;
 
-pub fn part1(input: &str) -> eyre::Result<usize> {
+pub fn solve(input: &str) -> eyre::Result<usize> {
     Ok(parse(input)?
         .into_iter()
         .map(|race| race.optimal_count())
         .product())
-}
-
-pub fn part2(input: &str) -> eyre::Result<usize> {
-    todo!()
 }
 
 struct Race {
@@ -24,14 +20,11 @@ struct Race {
 
 impl Race {
     fn optimal_count(&self) -> usize {
-        let mut count = 0;
-        for hold in 1..self.time {
-            let dist = hold * (self.time - hold);
-            if dist > self.distance {
-                count += 1;
-            }
-        }
-        count
+        let (t, d) = (self.time as f64, self.distance as f64);
+        let delta = (t * t - 4.0 * d).sqrt();
+        let h1 = ((t - delta) / 2.0).floor();
+        let h2 = ((t + delta) / 2.0).ceil();
+        (h2 - h1 - 1.0) as usize
     }
 }
 
