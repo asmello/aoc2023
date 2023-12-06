@@ -41,9 +41,11 @@ aoc2023
          └── input.txt
 ```
 
-In general each day module will export two functions, `part1()` and `part2()`, which implement the solutions to each part of the day's challenge. For now, I'm planning to have each take `impl Read` as the main argument representing the full input. Although I expect all problems will have a reasonably small input that can comfortably fit in a String, this generic interface is a good way to practice building a more realistic API. Note that some problems involve additional parameters that may also be passed to these functions.
+For the most part, each module exports a couple public functions `part1()` and `part2()` that implement the solutions to each part of the day's challenge. However, for day 6, I decided to treat the second part as having a different input, so the solution could remain the same - because of this, it exports `solve()` instead. I may go back on this if this turns out to be the only exception.
 
-Some modules may contain submodules with alternative implementations. Since I'm taking an educational approach to these challenges, it is sometimes useful to compare different implementations. When this happens I'll export one of the implementations at the day module. The other implementations will also be public.
+The argument types used by each module are also a bit inconsistent, sadly. This is because I initially wanted to have a very generic API that could take a file, memory buffer or anything implementing the `Read` trait. But after solving a few problems I decided to go back to using simple strings, as most inputs are tiny, and the boilerplate was getting annoying. So starting with day 5 you'll see `partX(input: &str)` as the typical interface to solvers.
+
+Another inconsistency is that day 2, in particular, has two different implementations with two parsers. This is because I wanted to compare a manual parser with a generated one. I may add more multi-solution modules later, but I promise to always export a single "default" solution (as defined by being the one exported directly at the day module, and not in a submodule).
 
 I'm implementing most tests as integration tests. Each day gets its own integration test module under `tests/`. This helps ensure I keep the public library interface adequate, as I'm effectively using it like an external consumer would (not that I expect any). Someone once told me a good (programming?) life hack is to always be your own client.
 
