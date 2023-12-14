@@ -21,6 +21,18 @@ const SAMPLE2: &str = indoc! { r#"
 	BBB = (AAA, ZZZ)
 	ZZZ = (ZZZ, ZZZ)
 "# };
+const SAMPLE3: &str = indoc! { r#"
+	LR
+
+	11A = (11B, XXX)
+	11B = (XXX, 11Z)
+	11Z = (11B, XXX)
+	22A = (22B, XXX)
+	22B = (22C, 22C)
+	22C = (22Z, 22Z)
+	22Z = (22B, 22B)
+	XXX = (XXX, XXX)
+"# };
 const INPUT_PATH: &str = "day8/input.txt";
 
 #[test]
@@ -41,15 +53,15 @@ fn part1_input() {
     assert_eq!(result, 21389);
 }
 
-// #[test]
-// fn part2_sample() {
-//     let result = day8::part2(SAMPLE).unwrap();
-//     assert_eq!(result, 5905);
-// }
+#[test]
+fn part2_sample() {
+    let result = day8::part2(SAMPLE3).unwrap();
+    assert_eq!(result, 6);
+}
 
-// #[test]
-// fn part2_input() {
-//     let input = common::read_string(INPUT_PATH).unwrap();
-//     let result = day8::part2(&input).unwrap();
-//     assert_eq!(result, 250506580);
-// }
+#[test]
+fn part2_input() {
+    let input = common::read_string(INPUT_PATH).unwrap();
+    let result = day8::part2(&input).unwrap();
+    assert_eq!(result, 250506580);
+}
