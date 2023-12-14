@@ -63,5 +63,5 @@ fn part2_sample() {
 fn part2_input() {
     let input = common::read_string(INPUT_PATH).unwrap();
     let result = day8::part2(&input).unwrap();
-    assert_eq!(result, 250506580);
+    assert_eq!(result, 21083806112641); // wow
 }

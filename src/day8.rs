@@ -5,38 +5,43 @@ use std::collections::HashMap;
 
 pub fn part1(input: &str) -> miette::Result<usize> {
     let maze = parse(input, maze())?;
-    let mut curr = "AAA";
+    steps(&maze, "AAA")
+}
+
+pub fn part2(input: &str) -> miette::Result<usize> {
+    let maze = parse(input, maze())?;
+    let steps = maze
+        .starts()
+        .map(|node| steps(&maze, node))
+        .collect::<miette::Result<Vec<_>>>()?;
+    steps
+        .into_iter()
+        .reduce(lcm)
+        .ok_or_else(|| miette!("empty set"))
+}
+
+fn gcd(mut a: usize, mut b: usize) -> usize {
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    (a * b) / gcd(a, b)
+}
+
+fn steps(maze: &Maze, start: &str) -> miette::Result<usize> {
+    let mut curr = start;
     for (count, dir) in maze.instructions().enumerate() {
-        if curr == "ZZZ" {
+        if curr.ends_with('Z') {
             return Ok(count);
         }
         curr = maze.apply(curr, dir)?;
     }
     Err(miette!("empty instructions"))
-}
-
-pub fn part2(input: &str) -> miette::Result<usize> {
-    let maze = parse(input, maze())?;
-    
-    let mut instances = maze.starts();
-    for (count, dir) in maze.instructions().enumerate() {
-        if is_goal(&instances) {
-            return Ok(count);
-        }
-        for instance in &mut instances {
-            *instance = maze.apply(instance, dir)?;
-        }
-    }
-    Err(miette!("empty instructions"))
-}
-
-fn is_goal(instances: &[&str]) -> bool {
-    for instance in instances {
-        if !instance.ends_with('Z') {
-            return false;
-        }
-    }
-    true
 }
 
 struct Maze<'a> {
@@ -45,12 +50,8 @@ struct Maze<'a> {
 }
 
 impl<'a> Maze<'a> {
-    fn starts(&self) -> Vec<&'a str> {
-        self.nodes
-            .keys()
-            .filter(|key| key.ends_with('A'))
-            .copied()
-            .collect()
+    fn starts(&self) -> impl Iterator<Item = &'a str> + '_ {
+        self.nodes.keys().filter(|key| key.ends_with('A')).copied()
     }
     fn instructions(&self) -> impl Iterator<Item = Direction> + '_ {
         self.instr.iter().cycle().copied()
