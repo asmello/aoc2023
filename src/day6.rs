@@ -2,7 +2,7 @@ use crate::parse::parse;
 use chumsky::prelude::*;
 
 pub fn solve(input: &str) -> miette::Result<usize> {
-    Ok(parse(input, parser())?
+    Ok(parse(input, race())?
         .into_iter()
         .map(|race| race.optimal_count())
         .product())
@@ -23,7 +23,7 @@ impl Race {
     }
 }
 
-fn parser<'a>() -> impl Parser<'a, &'a str, Vec<Race>, extra::Err<Rich<'a, char>>> {
+fn race<'a>() -> impl Parser<'a, &'a str, Vec<Race>, extra::Err<Rich<'a, char>>> {
     let time = just("Time:").ignore_then(integer_seq());
 
     let dist = just("Distance:").ignore_then(integer_seq());

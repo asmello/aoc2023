@@ -1,6 +1,5 @@
-use std::io::{BufRead, BufReader, Read};
-
 use miette::{Context, IntoDiagnostic};
+use std::io::{BufRead, BufReader, Read};
 
 pub fn part1(input: impl Read) -> miette::Result<usize> {
     let grid = build_grid(input)?;

@@ -1,6 +1,5 @@
-use std::io::{BufRead, BufReader, Read};
-
 use miette::{miette, Context, IntoDiagnostic};
+use std::io::{BufRead, BufReader, Read};
 
 pub fn part1(input: impl Read) -> miette::Result<u64> {
     let reader = BufReader::new(input);

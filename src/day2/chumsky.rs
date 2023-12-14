@@ -6,7 +6,7 @@ use miette::Context;
 pub fn part1(input: &str, bag: &ColorSet) -> miette::Result<usize> {
     let mut sum = 0;
     for (num, line) in input.lines().enumerate() {
-        let game = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
+        let game = parse(line, game()).wrap_err_with(|| format!("at line {num}"))?;
         if game.is_possible(bag) {
             sum += game.id;
         }
@@ -17,7 +17,7 @@ pub fn part1(input: &str, bag: &ColorSet) -> miette::Result<usize> {
 pub fn part2(input: &str) -> miette::Result<usize> {
     let mut sum = 0;
     for (num, line) in input.lines().enumerate() {
-        let game = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
+        let game = parse(line, game()).wrap_err_with(|| format!("at line {num}"))?;
         let cover = game.cover();
         sum += cover.power();
     }
@@ -31,7 +31,7 @@ enum Color {
     Blue,
 }
 
-fn parser<'a>() -> impl Parser<'a, &'a str, Game, extra::Err<Rich<'a, char>>> {
+fn game<'a>() -> impl Parser<'a, &'a str, Game, extra::Err<Rich<'a, char>>> {
     let head = just("Game").padded();
 
     let integer = text::int(10).from_str().unwrapped().padded();
@@ -71,13 +71,13 @@ fn parser<'a>() -> impl Parser<'a, &'a str, Game, extra::Err<Rich<'a, char>>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{parser, ColorSet, Game};
+    use super::{game, ColorSet, Game};
     use crate::parse::parse;
 
     #[test]
     fn can_parse() {
         let s = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green";
-        let game = parse(s, parser()).unwrap();
+        let game = parse(s, game()).unwrap();
         let expected = Game {
             id: 1,
             draws: vec![

@@ -1,4 +1,5 @@
 mod common;
+
 use aoc2023::day8;
 use indoc::indoc;
 

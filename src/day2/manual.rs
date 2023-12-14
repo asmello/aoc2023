@@ -1,7 +1,6 @@
+use super::{ColorSet, Game};
 use miette::{bail, ensure, miette, Context, IntoDiagnostic};
 use std::str::FromStr;
-
-use super::{ColorSet, Game};
 
 pub fn part1(input: &str, bag: &ColorSet) -> miette::Result<usize> {
     let mut sum = 0;

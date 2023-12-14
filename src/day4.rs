@@ -1,13 +1,12 @@
+use crate::parse::parse;
 use chumsky::prelude::*;
 use miette::Context;
 use std::collections::{HashMap, HashSet};
 
-use crate::parse::parse;
-
 pub fn part1(input: &str) -> miette::Result<usize> {
     let mut sum = 0;
     for (num, line) in input.lines().enumerate() {
-        let card = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
+        let card = parse(line, card()).wrap_err_with(|| format!("at line {num}"))?;
         sum += card.points();
     }
     Ok(sum)
@@ -16,7 +15,7 @@ pub fn part1(input: &str) -> miette::Result<usize> {
 pub fn part2(input: &str) -> miette::Result<usize> {
     let mut counts: HashMap<_, usize> = HashMap::new();
     for (num, line) in input.lines().enumerate() {
-        let card = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
+        let card = parse(line, card()).wrap_err_with(|| format!("at line {num}"))?;
         // the count of copies won by past cards
         let count = counts.entry(card.id).or_default();
         *count += 1; // count the original card
@@ -50,7 +49,7 @@ impl Card {
     }
 }
 
-fn parser<'a>() -> impl Parser<'a, &'a str, Card, extra::Err<Rich<'a, char>>> {
+fn card<'a>() -> impl Parser<'a, &'a str, Card, extra::Err<Rich<'a, char>>> {
     let head = just("Card").padded();
 
     let integer = text::int(10).from_str::<usize>().unwrapped().padded();

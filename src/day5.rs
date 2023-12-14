@@ -1,11 +1,10 @@
+use crate::parse::parse;
 use chumsky::prelude::*;
 use miette::miette;
 use std::collections::BTreeMap;
 
-use crate::parse::parse;
-
 pub fn part1(input: &str) -> miette::Result<usize> {
-    let almanac = parse(input, parser())?;
+    let almanac = parse(input, almanac())?;
     almanac
         .seeds
         .iter()
@@ -16,7 +15,7 @@ pub fn part1(input: &str) -> miette::Result<usize> {
 }
 
 pub fn part2(input: &str) -> miette::Result<usize> {
-    let almanac = parse(input, parser())?;
+    let almanac = parse(input, almanac())?;
     almanac
         // TODO: optimize using range arithmetic... this is correct but, uh, slow
         .seeds()
@@ -98,7 +97,7 @@ fn map<'a>(
     just(label).ignore_then(triple().separated_by(text::newline()).collect().padded())
 }
 
-fn parser<'a>() -> impl Parser<'a, &'a str, Almanac, extra::Err<Rich<'a, char>>> {
+fn almanac<'a>() -> impl Parser<'a, &'a str, Almanac, extra::Err<Rich<'a, char>>> {
     group((
         seeds(),
         map("seed-to-soil map:"),
