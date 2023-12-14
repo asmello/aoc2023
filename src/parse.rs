@@ -1,6 +1,5 @@
-use chumsky::prelude::*;
-
 use crate::errors::{GenericError, ParseError};
+use chumsky::prelude::*;
 
 pub(crate) fn parse<'a, T>(
     input: &'a str,
