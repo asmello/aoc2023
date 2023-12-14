@@ -1,12 +1,14 @@
 use std::io::{BufRead, BufReader, Read};
 
-use eyre::{eyre, Context};
+use miette::{miette, Context, IntoDiagnostic};
 
-pub fn part1(input: impl Read) -> eyre::Result<u64> {
+pub fn part1(input: impl Read) -> miette::Result<u64> {
     let reader = BufReader::new(input);
     let mut sum = 0;
     for (num, line) in reader.lines().enumerate() {
-        let line = line.wrap_err_with(|| format!("failed to read line {num}"))?;
+        let line = line
+            .into_diagnostic()
+            .wrap_err_with(|| format!("failed to read line {num}"))?;
         if line.is_empty() {
             continue;
         }
@@ -17,7 +19,7 @@ pub fn part1(input: impl Read) -> eyre::Result<u64> {
                 last = digit.into();
             }
         }
-        let first = first.ok_or_else(|| eyre!("no valid digits in line {num}"))?;
+        let first = first.ok_or_else(|| miette!("no valid digits in line {num}"))?;
         let last = last.expect("if first is set, last should be too");
         sum += 10 * first as u64 + last as u64;
     }
@@ -37,11 +39,13 @@ fn replace_in_order(s: &str) -> String {
         .replace("nine", "nine9nine")
 }
 
-pub fn part2(input: impl Read) -> eyre::Result<u64> {
+pub fn part2(input: impl Read) -> miette::Result<u64> {
     let reader = BufReader::new(input);
     let mut sum = 0;
     for (num, line) in reader.lines().enumerate() {
-        let line = line.wrap_err_with(|| format!("failed to read line {num}"))?;
+        let line = line
+            .into_diagnostic()
+            .wrap_err_with(|| format!("failed to read line {num}"))?;
         if line.is_empty() {
             continue;
         }
@@ -53,7 +57,7 @@ pub fn part2(input: impl Read) -> eyre::Result<u64> {
                 last = digit.into();
             }
         }
-        let first = first.ok_or_else(|| eyre!("no valid digits in line {num}"))?;
+        let first = first.ok_or_else(|| miette!("no valid digits in line {num}"))?;
         let last = last.expect("if first is set, last should be too");
         sum += 10 * first as u64 + last as u64;
     }

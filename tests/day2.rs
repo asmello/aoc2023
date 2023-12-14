@@ -21,28 +21,28 @@ mod manual {
     #[test]
     fn part1_sample() {
         let bag = ColorSet::new(12, 13, 14);
-        let result = part1(SAMPLE.as_bytes(), &bag).unwrap();
+        let result = part1(SAMPLE, &bag).unwrap();
         assert_eq!(result, 8);
     }
 
     #[test]
     fn part1_input() {
-        let input = common::read("day2/input.txt").unwrap();
+        let input = common::read_string("day2/input.txt").unwrap();
         let bag = ColorSet::new(12, 13, 14);
-        let result = part1(input, &bag).unwrap();
+        let result = part1(&input, &bag).unwrap();
         assert_eq!(result, 2076);
     }
 
     #[test]
     fn part2_sample() {
-        let result = part2(SAMPLE.as_bytes()).unwrap();
+        let result = part2(SAMPLE).unwrap();
         assert_eq!(result, 2286);
     }
 
     #[test]
     fn part2_input() {
-        let input = common::read("day2/input.txt").unwrap();
-        let result = part2(input).unwrap();
+        let input = common::read_string("day2/input.txt").unwrap();
+        let result = part2(&input).unwrap();
         assert_eq!(result, 70950);
     }
 }
@@ -58,28 +58,28 @@ mod chumsky {
     #[test]
     fn part1_sample() {
         let bag = ColorSet::new(12, 13, 14);
-        let result = part1(SAMPLE.as_bytes(), &bag).unwrap();
+        let result = part1(SAMPLE, &bag).unwrap();
         assert_eq!(result, 8);
     }
 
     #[test]
     fn part1_input() {
-        let input = common::read("day2/input.txt").unwrap();
+        let input = common::read_string("day2/input.txt").unwrap();
         let bag = ColorSet::new(12, 13, 14);
-        let result = part1(input, &bag).unwrap();
+        let result = part1(&input, &bag).unwrap();
         assert_eq!(result, 2076);
     }
 
     #[test]
     fn part2_sample() {
-        let result = part2(SAMPLE.as_bytes()).unwrap();
+        let result = part2(SAMPLE).unwrap();
         assert_eq!(result, 2286);
     }
 
     #[test]
     fn part2_input() {
-        let input = common::read("day2/input.txt").unwrap();
-        let result = part2(input).unwrap();
+        let input = common::read_string("day2/input.txt").unwrap();
+        let result = part2(&input).unwrap();
         assert_eq!(result, 70950);
     }
 }

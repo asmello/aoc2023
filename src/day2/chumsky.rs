@@ -1,15 +1,12 @@
 use super::{ColorSet, Game};
+use crate::parse::parse;
 use chumsky::{prelude::*, text};
-use eyre::{eyre, Context};
-use std::io::{BufRead, BufReader, Read};
+use miette::Context;
 
-pub fn part1(input: impl Read, bag: &ColorSet) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+pub fn part1(input: &str, bag: &ColorSet) -> miette::Result<usize> {
     let mut sum = 0;
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line?;
-        let game =
-            parse_game(&line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
+    for (num, line) in input.lines().enumerate() {
+        let game = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
         if game.is_possible(bag) {
             sum += game.id;
         }
@@ -17,13 +14,10 @@ pub fn part1(input: impl Read, bag: &ColorSet) -> eyre::Result<usize> {
     Ok(sum)
 }
 
-pub fn part2(input: impl Read) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+pub fn part2(input: &str) -> miette::Result<usize> {
     let mut sum = 0;
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line?;
-        let game =
-            parse_game(&line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
+    for (num, line) in input.lines().enumerate() {
+        let game = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
         let cover = game.cover();
         sum += cover.power();
     }
@@ -37,13 +31,7 @@ enum Color {
     Blue,
 }
 
-fn parse_game(s: &str) -> eyre::Result<Game> {
-    parser()
-        .parse(s)
-        .map_err(|errors| eyre!(errors.into_iter().next().unwrap()))
-}
-
-fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
+fn parser<'a>() -> impl Parser<'a, &'a str, Game, extra::Err<Rich<'a, char>>> {
     let head = just("Game").padded();
 
     let integer = text::int(10).from_str().unwrapped().padded();
@@ -58,19 +46,22 @@ fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
 
     let color_count = integer.then(color);
 
-    let color_set = color_count.separated_by(just(',')).map(|color_counts| {
-        let mut set = ColorSet::default();
-        for (count, color) in color_counts {
-            match color {
-                Color::Red => set.red += count,
-                Color::Green => set.green += count,
-                Color::Blue => set.blue += count,
+    let color_set = color_count
+        .separated_by(just(','))
+        .collect()
+        .map(|color_counts: Vec<_>| {
+            let mut set = ColorSet::default();
+            for (count, color) in color_counts {
+                match color {
+                    Color::Red => set.red += count,
+                    Color::Green => set.green += count,
+                    Color::Blue => set.blue += count,
+                }
             }
-        }
-        set
-    });
+            set
+        });
 
-    let color_sets = color_set.separated_by(just(';'));
+    let color_sets = color_set.separated_by(just(';')).collect();
 
     head.ignore_then(id)
         .then(color_sets)
@@ -80,14 +71,13 @@ fn parser() -> impl Parser<char, Game, Error = Simple<char>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::day2::{ColorSet, Game};
-
-    use super::parse_game;
+    use super::{parser, ColorSet, Game};
+    use crate::parse::parse;
 
     #[test]
-    fn parse() {
+    fn can_parse() {
         let s = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green";
-        let game = parse_game(s).unwrap();
+        let game = parse(s, parser()).unwrap();
         let expected = Game {
             id: 1,
             draws: vec![

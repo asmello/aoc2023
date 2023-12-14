@@ -1,13 +1,8 @@
-use chumsky::{
-    error::Simple,
-    primitive::just,
-    text::{self, TextParser},
-    Parser,
-};
-use eyre::eyre;
+use crate::parse::parse;
+use chumsky::prelude::*;
 
-pub fn solve(input: &str) -> eyre::Result<usize> {
-    Ok(parse(input)?
+pub fn solve(input: &str) -> miette::Result<usize> {
+    Ok(parse(input, parser())?
         .into_iter()
         .map(|race| race.optimal_count())
         .product())
@@ -28,18 +23,10 @@ impl Race {
     }
 }
 
-fn parse(input: &str) -> eyre::Result<Vec<Race>> {
-    parser()
-        .parse(input)
-        .map_err(|errors| eyre!(errors.into_iter().next().unwrap()))
-}
+fn parser<'a>() -> impl Parser<'a, &'a str, Vec<Race>, extra::Err<Rich<'a, char>>> {
+    let time = just("Time:").ignore_then(integer_seq());
 
-fn parser() -> impl Parser<char, Vec<Race>, Error = Simple<char>> {
-    let integer = text::int(10).from_str::<usize>().unwrapped().padded();
-
-    let time = just("Time:").ignore_then(integer.repeated());
-
-    let dist = just("Distance:").ignore_then(integer.repeated());
+    let dist = just("Distance:").ignore_then(integer_seq());
 
     time.then(dist).map(|(time, dist)| {
         time.into_iter()
@@ -47,4 +34,11 @@ fn parser() -> impl Parser<char, Vec<Race>, Error = Simple<char>> {
             .map(|(time, distance)| Race { time, distance })
             .collect()
     })
+}
+fn integer<'a>() -> impl Parser<'a, &'a str, usize, extra::Err<Rich<'a, char>>> {
+    text::int(10).from_str::<usize>().unwrapped().padded()
+}
+
+fn integer_seq<'a>() -> impl Parser<'a, &'a str, Vec<usize>, extra::Err<Rich<'a, char>>> {
+    integer().repeated().collect()
 }

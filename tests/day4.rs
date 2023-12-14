@@ -15,26 +15,26 @@ const INPUT_PATH: &str = "day4/input.txt";
 
 #[test]
 fn part1_sample() {
-    let result = day4::part1(SAMPLE.as_bytes()).unwrap();
+    let result = day4::part1(SAMPLE).unwrap();
     assert_eq!(result, 13);
 }
 
 #[test]
 fn part1_input() {
-    let input = common::read(INPUT_PATH).unwrap();
-    let result = day4::part1(input).unwrap();
+    let input = common::read_string(INPUT_PATH).unwrap();
+    let result = day4::part1(&input).unwrap();
     assert_eq!(result, 25004);
 }
 
 #[test]
 fn part2_sample() {
-    let result = day4::part2(SAMPLE.as_bytes()).unwrap();
+    let result = day4::part2(SAMPLE).unwrap();
     assert_eq!(result, 30);
 }
 
 #[test]
 fn part2_input() {
-    let input = common::read(INPUT_PATH).unwrap();
-    let result = day4::part2(input).unwrap();
+    let input = common::read_string(INPUT_PATH).unwrap();
+    let result = day4::part2(&input).unwrap();
     assert_eq!(result, 14427616);
 }

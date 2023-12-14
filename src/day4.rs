@@ -1,37 +1,22 @@
-use chumsky::{
-    error::Simple,
-    primitive::just,
-    text::{self, TextParser},
-    Parser,
-};
-use eyre::{eyre, Context};
-use std::{
-    collections::{HashMap, HashSet},
-    io::{BufRead, BufReader, Read},
-    str::FromStr,
-};
+use chumsky::prelude::*;
+use miette::Context;
+use std::collections::{HashMap, HashSet};
 
-pub fn part1(input: impl Read) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+use crate::parse::parse;
+
+pub fn part1(input: &str) -> miette::Result<usize> {
     let mut sum = 0;
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line.wrap_err_with(|| format!("could not read line {num}"))?;
-        let card: Card = line
-            .parse()
-            .wrap_err_with(|| format!("could not parse card at line {num}"))?;
+    for (num, line) in input.lines().enumerate() {
+        let card = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
         sum += card.points();
     }
     Ok(sum)
 }
 
-pub fn part2(input: impl Read) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+pub fn part2(input: &str) -> miette::Result<usize> {
     let mut counts: HashMap<_, usize> = HashMap::new();
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line.wrap_err_with(|| format!("could not read line {num}"))?;
-        let card: Card = line
-            .parse()
-            .wrap_err_with(|| format!("could not parse card at line {num}"))?;
+    for (num, line) in input.lines().enumerate() {
+        let card = parse(line, parser()).wrap_err_with(|| format!("at line {num}"))?;
         // the count of copies won by past cards
         let count = counts.entry(card.id).or_default();
         *count += 1; // count the original card
@@ -40,13 +25,6 @@ pub fn part2(input: impl Read) -> eyre::Result<usize> {
         for id in card.id + 1..=card.id + matches {
             *counts.entry(id).or_default() += count;
         }
-        // println!(
-        //     "card: {} has {}, matched {} -- set is {:?}",
-        //     card.id,
-        //     count,
-        //     card.matches(),
-        //     counts
-        // );
     }
     Ok(counts.into_values().sum())
 }
@@ -72,17 +50,7 @@ impl Card {
     }
 }
 
-impl FromStr for Card {
-    type Err = eyre::Report;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parser()
-            .parse(s)
-            .map_err(|errors| eyre!(errors.into_iter().next().unwrap()))
-    }
-}
-
-fn parser() -> impl Parser<char, Card, Error = Simple<char>> {
+fn parser<'a>() -> impl Parser<'a, &'a str, Card, extra::Err<Rich<'a, char>>> {
     let head = just("Card").padded();
 
     let integer = text::int(10).from_str::<usize>().unwrapped().padded();

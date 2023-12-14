@@ -1,18 +1,19 @@
-use eyre::eyre;
+use miette::{miette, IntoDiagnostic};
 use std::{collections::HashMap, mem::MaybeUninit, str::FromStr};
 
-pub fn part1(input: &str) -> eyre::Result<usize> {
+pub fn part1(input: &str) -> miette::Result<usize> {
     let mut hands = Vec::new();
     for (num, line) in input.lines().enumerate() {
         let mut tokens = line.split_ascii_whitespace();
         let hand: Hand = tokens
             .next()
-            .ok_or_else(|| eyre!("missing hand at line {num}"))?
+            .ok_or_else(|| miette!("missing hand at line {num}"))?
             .parse()?;
         let bid: usize = tokens
             .next()
-            .ok_or_else(|| eyre!("missing bid at line {num}"))?
-            .parse()?;
+            .ok_or_else(|| miette!("missing bid at line {num}"))?
+            .parse()
+            .into_diagnostic()?;
         hands.push((hand, bid));
     }
     hands.sort_unstable_by(|a, b| a.cmp(b).reverse());
@@ -80,11 +81,11 @@ impl Ord for Hand {
 }
 
 impl FromStr for Hand {
-    type Err = eyre::Report;
+    type Err = miette::Report;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != 5 {
-            return Err(eyre!("string must have exactly 5 characters"));
+            return Err(miette!("string must have exactly 5 characters"));
         }
         let mut data: [MaybeUninit<Card>; 5] = unsafe { MaybeUninit::uninit().assume_init() };
         for i in 0..5 {
@@ -124,7 +125,7 @@ enum Card {
 }
 
 impl FromStr for Card {
-    type Err = eyre::Report;
+    type Err = miette::Report;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -141,7 +142,7 @@ impl FromStr for Card {
             "4" => Ok(Self::Four),
             "3" => Ok(Self::Three),
             "2" => Ok(Self::Two),
-            _ => Err(eyre!("invalid card symbol: {s}")),
+            _ => Err(miette!("invalid card symbol: {s}")),
         }
     }
 }

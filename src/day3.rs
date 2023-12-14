@@ -1,8 +1,8 @@
 use std::io::{BufRead, BufReader, Read};
 
-use eyre::Context;
+use miette::{Context, IntoDiagnostic};
 
-pub fn part1(input: impl Read) -> eyre::Result<usize> {
+pub fn part1(input: impl Read) -> miette::Result<usize> {
     let grid = build_grid(input)?;
     let sum = grid
         .numbers
@@ -12,7 +12,7 @@ pub fn part1(input: impl Read) -> eyre::Result<usize> {
     Ok(sum)
 }
 
-pub fn part2(input: impl Read) -> eyre::Result<usize> {
+pub fn part2(input: impl Read) -> miette::Result<usize> {
     let grid = build_grid(input)?;
     let sum = grid
         .iter()
@@ -21,11 +21,13 @@ pub fn part2(input: impl Read) -> eyre::Result<usize> {
     Ok(sum)
 }
 
-fn build_grid(input: impl Read) -> eyre::Result<Grid> {
+fn build_grid(input: impl Read) -> miette::Result<Grid> {
     let buf_reader = BufReader::new(input);
     let mut grid = Grid::default();
     for (row, line) in buf_reader.lines().enumerate() {
-        let line = line.wrap_err_with(|| format!("failed to read line {row}"))?;
+        let line = line
+            .into_diagnostic()
+            .wrap_err_with(|| format!("failed to read line {row}"))?;
         if line.is_empty() {
             continue;
         }
@@ -46,6 +48,7 @@ fn build_grid(input: impl Read) -> eyre::Result<Grid> {
                     let slice = &line[start..end];
                     let value: usize = slice
                         .parse()
+                        .into_diagnostic()
                         .wrap_err("could not parse sequence as usize at line {row} col {col}")?;
                     grid.numbers.push(Number {
                         value,
@@ -61,6 +64,7 @@ fn build_grid(input: impl Read) -> eyre::Result<Grid> {
             let slice = &line[start..];
             let value: usize = slice
                 .parse()
+                .into_diagnostic()
                 .wrap_err("could not parse sequence as usize at line {row} col {col}")?;
             grid.numbers.push(Number {
                 value,

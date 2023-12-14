@@ -1,18 +1,13 @@
-use eyre::{bail, ensure, eyre, Context};
-use std::{
-    io::{BufRead, BufReader, Read},
-    str::FromStr,
-};
+use miette::{bail, ensure, miette, Context, IntoDiagnostic};
+use std::str::FromStr;
 
 use super::{ColorSet, Game};
 
-pub fn part1(input: impl Read, bag: &ColorSet) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+pub fn part1(input: &str, bag: &ColorSet) -> miette::Result<usize> {
     let mut sum = 0;
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line?;
+    for (num, line) in input.lines().enumerate() {
         let game =
-            parse_game(&line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
+            parse_game(line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
         if game.is_possible(bag) {
             sum += game.id;
         }
@@ -20,45 +15,48 @@ pub fn part1(input: impl Read, bag: &ColorSet) -> eyre::Result<usize> {
     Ok(sum)
 }
 
-pub fn part2(input: impl Read) -> eyre::Result<usize> {
-    let buf_reader = BufReader::new(input);
+pub fn part2(input: &str) -> miette::Result<usize> {
     let mut sum = 0;
-    for (num, line) in buf_reader.lines().enumerate() {
-        let line = line?;
+    for (num, line) in input.lines().enumerate() {
         let game =
-            parse_game(&line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
+            parse_game(line).wrap_err_with(|| format!("failed to parse game at line {num}"))?;
         let cover = game.cover();
         sum += cover.power();
     }
     Ok(sum)
 }
 
-fn parse_game(s: &str) -> eyre::Result<Game> {
+fn parse_game(s: &str) -> miette::Result<Game> {
     let mut tokens = s.split_ascii_whitespace();
-    let game = tokens.next().ok_or_else(|| eyre!("expected Game token"))?;
+    let game = tokens
+        .next()
+        .ok_or_else(|| miette!("expected Game token"))?;
     ensure!(game == "Game", "invalid token {game}, expected Game");
     let id = tokens
         .next()
-        .ok_or_else(|| eyre!("expected game id token"))?;
+        .ok_or_else(|| miette!("expected game id token"))?;
     let id = parse_id(id)?;
     let draws = parse_draws(&mut tokens)?;
     Ok(Game { id, draws })
 }
 
-fn parse_id(s: &str) -> eyre::Result<usize> {
+fn parse_id(s: &str) -> miette::Result<usize> {
     for (pos, ch) in s.chars().enumerate() {
         if ch.is_ascii_digit() {
             continue;
         }
         if ch == ':' {
-            return s[..pos].parse().wrap_err("failed to parse as usize");
+            return s[..pos]
+                .parse()
+                .into_diagnostic()
+                .wrap_err("failed to parse as usize");
         }
-        return Err(eyre!("invalid character {ch} at position {pos}"));
+        return Err(miette!("invalid character {ch} at position {pos}"));
     }
-    Err(eyre!("missing terminator :"))
+    Err(miette!("missing terminator :"))
 }
 
-fn parse_draws<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> eyre::Result<Vec<ColorSet>> {
+fn parse_draws<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> miette::Result<Vec<ColorSet>> {
     let mut draws = Vec::new();
     while let Some(draw) = parse_draw(tokens)? {
         draws.push(draw);
@@ -66,7 +64,7 @@ fn parse_draws<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> eyre::Result<V
     Ok(draws)
 }
 
-fn parse_draw<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> eyre::Result<Option<ColorSet>> {
+fn parse_draw<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> miette::Result<Option<ColorSet>> {
     let mut set = ColorSet::default();
     while let Some(token) = parse_color(tokens)? {
         match token.color {
@@ -98,7 +96,7 @@ enum Color {
 }
 
 impl FromStr for Color {
-    type Err = eyre::Report;
+    type Err = miette::Report;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
@@ -112,12 +110,14 @@ impl FromStr for Color {
 
 fn parse_color<'a>(
     tokens: &mut impl Iterator<Item = &'a str>,
-) -> eyre::Result<Option<ColorRecord>> {
+) -> miette::Result<Option<ColorRecord>> {
     let Some(count) = tokens.next() else {
         return Ok(None);
     };
-    let count = count.parse::<usize>()?;
-    let color = tokens.next().ok_or_else(|| eyre!("expecting color name"))?;
+    let count = count.parse::<usize>().into_diagnostic()?;
+    let color = tokens
+        .next()
+        .ok_or_else(|| miette!("expecting color name"))?;
     let (color, is_terminal) = match color.chars().last() {
         Some(',') => (&color[..color.len() - 1], false),
         Some(';') => (&color[..color.len() - 1], true),
